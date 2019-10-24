@@ -36,22 +36,35 @@ passport.use(new Strategy((username, password, cb) => {
   }).catch(dbError => cb(err))
 }));
 
-
-
-app.get('/hello-unprotected',        
-        (req, res) => res.send('Hello World!'));
-
-app.get('/hello-protected',
-        passport.authenticate('basic', { session: false }),
-        (req, res) => res.send('Hello Protected World!'));
-
-app.get('/charge-history',
-        passport.authenticate('basic', { session: false }),
+app.post('/getchargehistory',
+        //passport.authenticate('basic', { session: false }),
         (req, res) => {
-          db.query('SELECT chargehistory FROM users WHERE username = ?', [req.param.username]).then(results => {
-            res.json("Here is your charge history:" + JSON.stringify(results));
+          db.query('SELECT chargehistory FROM users WHERE username = (?)', [req.params.username]).then(results => {
+            let stringresults = JSON.stringify(results);
+            let trimmedresults1 = stringresults.substr(19, stringresults.length);
+            let trimmedresults2 = trimmedresults1.substr(0,trimmedresults1.length -3);
+            res.json("Here is your charge history:" + trimmedresults2);
           })
         });
+
+app.post('/chargehistory', (req, res) => {
+  let chargehistory = req.body.chargehistory.trim() + ", ";
+
+  if((typeof chargehistory === "string") &&
+    (chargehistory.length > 4))
+  {
+    db.query('UPDATE users SET chargehistory = CONCAT(?, chargehistory) WHERE username = (?)', [chargehistory, req.body.username])  
+    .then(dbResults => {
+        console.log(dbResults);
+        res.sendStatus(201);
+    })
+    .catch(error => res.sendStatus(500));
+  }
+  else {
+    console.log("error");
+    res.sendStatus(400);
+  }
+  })
 
 
 app.get('/users', (req, res) => {
