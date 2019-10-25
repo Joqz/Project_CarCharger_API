@@ -112,7 +112,8 @@ Promise.all(
       db.query(`CREATE TABLE IF NOT EXISTS users(
           id INT AUTO_INCREMENT PRIMARY KEY,
           username VARCHAR(32),
-          password VARCHAR(256)
+          password VARCHAR(256),
+          chargehistory VARCHAR(256)
       )`)
       // Add more table create statements if you need more tables
   ]
